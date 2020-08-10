@@ -18,14 +18,31 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    implementation("org.javamoney:moneta:${DependencyVersions.JAVA_MONEY}")
+    implementation("org.zalando:jackson-datatype-money:${DependencyVersions.JACKSON_MONEY}")
+    implementation("javax.validation:validation-api:${DependencyVersions.VALIDATION_API}")
+
+    implementation("org.zalando:problem-spring-web:${DependencyVersions.PROBLEM_VIOLATIONS_JSON}")
+
+    testImplementation("org.assertj:assertj-core:${TestDependencyVersions.ASSERT_J}")
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:${TestDependencyVersions.MOCKITO}")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
 }
 tasks.withType<Test> {
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
     useJUnitPlatform()
 }
 
@@ -34,4 +51,8 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "11"
     }
+}
+
+tasks.withType<AbstractArchiveTask> {
+    setProperty("archiveFileName", "${project.name}.jar")
 }

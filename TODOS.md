@@ -4,7 +4,7 @@
 
 1. [x] Spring Boot application with REST API
 
-2. [ ] Create bank account
+2. [x] Create bank account
     - Accept client information
     - Return account number
 
@@ -33,7 +33,10 @@
 
 - ~~Create walking skeleton~~
 - ~~Define open api spec~~
-- Implement create and get bank account
+- ~~Implement create and get bank account~~
+- ~~Integrate problem json~~
+- ~~Integrate java validation~~
+- ~~Implement hateos linked resources~~
 - Implement add money to account
 - Implement move money between accounts
 - Implement account balance
