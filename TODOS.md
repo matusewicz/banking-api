@@ -32,7 +32,7 @@
 ## Steps
 
 - ~~Create walking skeleton~~
-- Define open api spec
+- ~~Define open api spec~~
 - Implement create and get bank account
 - Implement add money to account
 - Implement move money between accounts

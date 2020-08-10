@@ -1,0 +1,429 @@
+# OpenAPI definition of banking API.
+openapi: "3.0.3"
+info:
+  version: '0.1'
+  title: Banking API
+  description: |
+    A Restful banking API with simple deposit and money transfer functionality.
+paths:
+  /accounts:
+    get:
+      description: |
+        Lists all accounts
+      operationId: getAllAccounts
+      tags:
+        - account
+      responses:
+        '200':
+          description: Succesful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountList'
+    post:
+      description: |
+        Creates a new account
+      operationId: createAccount
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAccount'
+      responses:
+        '201':
+          description: Account successful created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |
+                URI of the created account resource
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /accounts/{accountNumber}:
+    get:
+      description: |
+        Returns an account for the given id
+      parameters:
+        - $ref: '#/components/parameters/accountNumber'
+      operationId: getAccount
+      tags:
+        - account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /accounts/{accountNumber}/balance:
+    get:
+      description: |
+        Returns the current account balance
+      parameters:
+        - $ref: '#/components/parameters/accountNumber'
+      operationId: getBalance
+      tags:
+        - account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /accounts/{accountNumber}/transactions:
+    get:
+      description: |
+        Returns all (credit and debit) transactions of an account.
+      parameters:
+        - $ref: '#/components/parameters/accountNumber'
+      operationId: getAllTransactions
+      tags:
+        - account
+        - transaction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /accounts/{accountNumber}/transactions/{transactionId}:
+    get:
+      description: |
+        Returns a single transaction for the given id.
+      parameters:
+        - $ref: '#/components/parameters/accountNumber'
+        - $ref: '#/components/parameters/transactionId'
+      operationId: getTransaction
+      tags:
+        - account
+        - transaction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /transfers:
+    get:
+      description: |
+        Lists all money transfers
+      operationId: getAllTransfers
+      tags:
+        - money-transfer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyTransferList'
+    post:
+      description: |
+        Creates a new money transfer to move the instructed amount from a debtor account to a creditor account.
+      operationId: createTransfer
+      tags:
+        - money-transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMoneyTransfer'
+      responses:
+        '201':
+          description: Money transfer successful created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |
+                URI of the created money transfer resource
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /transfers/{transferId}:
+    get:
+      description: |
+        Returns a money transfer for the given id.
+      parameters:
+        - $ref: '#/components/parameters/transferId'
+      operationId: getTransfer
+      tags:
+        - money-transfer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyTransfer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    accountNumber:
+      in: path
+      name: accountNumber
+      schema:
+        type: string
+        example: '1d55e743-5db6-4b5e-81f5-ec914cbf7bb4'
+      required: true
+      description: |
+        Account identifier
+
+    transactionId:
+      in: path
+      name: transactionId
+      schema:
+        type: string
+        example: 'fa8ee2bc-423a-409c-a3d7-a9f121d1cdd5'
+      required: true
+      description: |
+        Transaction identifier
+
+    transferId:
+      in: path
+      name: transferId
+      schema:
+        type: string
+        example: '7ebb7b75-9c04-4f5f-91fc-961ae82c5959'
+      required: true
+      description: |
+        Money Transfer identifier
+
+  schemas:
+    NewAccount:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: alice@example.org
+          description: |
+            The customer email address
+        baseCurrency:
+          type: string
+          format: iso-4217
+          description: |
+            3 letter currency code as defined by ISO-4217.
+          example: 'EUR'
+      required:
+        - email
+        - currecyCode
+
+    Account:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/NewAccount'
+        - type: object
+          properties:
+            accountNumber:
+              type: string
+              example: '1d55e743-5db6-4b5e-81f5-ec914cbf7bb4'
+              description: |
+                Account identifier.
+            createdAt:
+              type: string
+              format: 'date-time'
+              example: '2020-03-01T20:15:00+00:00'
+              description: |
+                Point in time of account creation
+            _links:
+              $ref: '#/components/schemas/Links'
+          required:
+            - accountNumber
+            - createdAt
+
+    AccountList:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+        _links:
+          $ref: '#/components/schemas/Links'
+
+    Balance:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          example: '1d55e743-5db6-4b5e-81f5-ec914cbf7bb4'
+          description: |
+            The account identifier this balance belongs to
+        balance:
+          $ref: '#/components/schemas/Money'
+        _links:
+          $ref: '#/components/schemas/Links'
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'fa8ee2bc-423a-409c-a3d7-a9f121d1cdd5'
+          description: |
+            Unique transaction identifier
+        account:
+          $ref: '#/components/schemas/Account'
+        amount:
+          $ref: '#/components/schemas/Money'
+        _links:
+          $ref: '#/components/schemas/Links'
+
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        _links:
+          $ref: '#/components/schemas/Links'
+      required:
+        - transactions
+
+    NewMoneyTransfer:
+      type: object
+      properties:
+        debtorAccountNumber:
+          type: string
+          description: |
+            The account number of the account where the money should be deducted.
+            In case of a deposit of money, the account number is the identifier of the ATM.
+        creditorAccountNumber:
+          type: string
+          description: |
+            The account number of the account where the money should be credited.
+        instructedAmount:
+          $ref: '#/components/schemas/Money'
+        reference:
+          type: string
+          description: |
+            A reference/comment/note/intended purpose of the money transfer.
+      required:
+        - debtorAccountNumber
+        - creditorAccountNumber
+        - instructedAmount
+        - reference
+
+    MoneyTransfer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: |
+            Unique identifier of the transaction
+        debitTransaction:
+          $ref: '#/components/schemas/Transaction'
+        creditTransaction:
+          $ref: '#/components/schemas/Transaction'
+        status:
+          $ref: '#/components/schemas/TransferStatus'
+        _links:
+          $ref: '#/components/schemas/Links'
+      required:
+        - id
+        - debitTransaction
+        - creditTransaction
+        - status
+
+    MoneyTransferList:
+      type: object
+      properties:
+        transfers:
+          $ref: '#/components/schemas/MoneyTransfer'
+        _links:
+          $ref: '#/components/schemas/Links'
+      required:
+        - transfers
+
+    TransferStatus:
+      type: string
+      description: |
+        The current status of the transaction.
+      x-extensible-enum:
+        - pending
+        - completed
+        - rejected
+      example: 'completed'
+      required:
+        - type
+
+    Money:
+      type: object
+      description: |
+        Monetary amount with currency.
+      properties:
+        amount:
+          type: number
+          format: decimal
+          description: |
+            Amount expressed as a decimal number of major currency units.
+          example: 99.95
+        currency:
+          type: string
+          format: iso-4217
+          description: |
+            3 letter currency code as defined by ISO-4217.
+          example: 'EUR'
+      required:
+        - amount
+        - currency
+
+    Problem:
+      type: object
+      description: |
+        [RFC 7809](https://tools.ietf.org/html/rfc7807)-complient JSON for reporting
+        errors to clients.
+      allOf:
+        - $ref: 'https://opensource.zalando.com/problem/schema.yaml#/Problem'
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+      required:
+        - href
+
+    Links:
+      type: array
+      items:
+        $ref: '#/components/schemas/Link'
+
+  responses:
+    BadRequest: # 400
+      description: Bad Request
+      content:
+        "application/problem+json":
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound: # 404
+      description: Not Found
+      content:
+        "application/problem+json":
+          schema:
+            $ref: '#/components/schemas/Problem'
