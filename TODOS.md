@@ -2,7 +2,7 @@
 
 ## Requirements
 
-1. [ ] Spring Boot application with REST API
+1. [x] Spring Boot application with REST API
 
 2. [ ] Create bank account
     - Accept client information
@@ -31,7 +31,7 @@
 
 ## Steps
 
-- Create walking skeleton
+- ~~Create walking skeleton~~
 - Define open api spec
 - Implement create and get bank account
 - Implement add money to account
