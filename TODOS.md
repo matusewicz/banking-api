@@ -15,7 +15,7 @@
 4. [x] Transfer money to other bank account
     - withdraw money from one account and deposit it to another
 
-5. [ ] Show current account balance
+5. [x] Show current account balance
 
 6. [ ] Configurable transaction rules
     - by default prevent negative balances
@@ -39,7 +39,7 @@
 - ~~Implement hateos linked resources~~
 - ~~Implement add money to account~~
 - ~~Implement move money between accounts~~
-- Implement account balance
+- ~Implement account balance~
 - Implement transaction history
 - Implement transaction rules
 - Implement currency exchange calculation on deposit of foreign currencies

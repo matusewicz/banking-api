@@ -1,9 +1,11 @@
 package com.github.matusewicz.bankingapi.infrastructure.http
 
+import com.github.matusewicz.bankingapi.domain.model.Balance
 import com.github.matusewicz.bankingapi.domain.model.CustomerAccount
 import com.github.matusewicz.bankingapi.domain.model.Transaction
 import com.github.matusewicz.bankingapi.infrastructure.http.account.CustomerAccountListRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.account.CustomerAccountRepresentation
+import com.github.matusewicz.bankingapi.infrastructure.http.balance.BalanceRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.transaction.TransactionListRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.transaction.TransactionRepresentation
 import org.springframework.stereotype.Service
@@ -19,6 +21,7 @@ class HttpRepresentationMapper(private val linkBuilder: LinkBuilder) {
             _links = mapOf(
                 "_self" to linkBuilder.accountLink(account.accountNumber),
                 "accounts" to linkBuilder.accountListLink(),
+                "balance" to linkBuilder.balanceLink(account.accountNumber),
                 "transactions" to linkBuilder.transactionListLink(account.accountNumber)
             )
         )
@@ -29,7 +32,9 @@ class HttpRepresentationMapper(private val linkBuilder: LinkBuilder) {
             customerAccounts = accounts.map { account ->
                 map(account).copy(
                     _links = mapOf(
-                        "_self" to linkBuilder.accountLink(account.accountNumber)
+                        "_self" to linkBuilder.accountLink(account.accountNumber),
+                        "balance" to linkBuilder.balanceLink(account.accountNumber),
+                        "transactions" to linkBuilder.transactionListLink(account.accountNumber)
                     )
                 )
             },
@@ -60,6 +65,17 @@ class HttpRepresentationMapper(private val linkBuilder: LinkBuilder) {
             _links = mapOf(
                 "_self" to linkBuilder.transactionListLink(accountId),
                 "account" to linkBuilder.accountLink(accountId)
+            )
+        )
+    }
+
+    fun map(balance: Balance): BalanceRepresentation {
+        return BalanceRepresentation(
+            accountNumber = balance.account.accountNumber,
+            balance = balance.value,
+            _links = mapOf(
+                "_self" to linkBuilder.balanceLink(balance.account.accountNumber),
+                "account" to linkBuilder.accountLink(balance.account.accountNumber)
             )
         )
     }

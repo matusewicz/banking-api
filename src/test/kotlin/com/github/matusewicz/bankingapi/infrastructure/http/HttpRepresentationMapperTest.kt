@@ -35,9 +35,10 @@ class HttpRepresentationMapperTest {
 
         val representation = unit.map(account)
 
-        assertThat(representation._links).hasSize(3)
+        assertThat(representation._links).hasSize(4)
         assertThat(representation._links["_self"]).isEqualTo(Link("https://example.org/accounts/${account.accountNumber}"))
         assertThat(representation._links["accounts"]).isEqualTo(Link("https://example.org/accounts"))
+        assertThat(representation._links["balance"]).isEqualTo(Link("https://example.org/accounts/${account.accountNumber}/balance"))
         assertThat(representation._links["transactions"]).isEqualTo(Link("https://example.org/accounts/${account.accountNumber}/transactions"))
     }
 
@@ -64,7 +65,9 @@ class HttpRepresentationMapperTest {
                 baseCurrency = oneAccount.baseCurrency,
                 email = oneAccount.email,
                 _links = mapOf(
-                    "_self" to Link("https://example.org/accounts/${oneAccount.accountNumber}")
+                    "_self" to Link("https://example.org/accounts/${oneAccount.accountNumber}"),
+                    "balance" to Link("https://example.org/accounts/${oneAccount.accountNumber}/balance"),
+                    "transactions" to Link("https://example.org/accounts/${oneAccount.accountNumber}/transactions")
                 )
             ),
             CustomerAccountRepresentation(
@@ -72,7 +75,9 @@ class HttpRepresentationMapperTest {
                 baseCurrency = anotherAccount.baseCurrency,
                 email = anotherAccount.email,
                 _links = mapOf(
-                    "_self" to Link("https://example.org/accounts/${anotherAccount.accountNumber}")
+                    "_self" to Link("https://example.org/accounts/${anotherAccount.accountNumber}"),
+                    "balance" to Link("https://example.org/accounts/${anotherAccount.accountNumber}/balance"),
+                    "transactions" to Link("https://example.org/accounts/${anotherAccount.accountNumber}/transactions")
                 )
             )
         )
