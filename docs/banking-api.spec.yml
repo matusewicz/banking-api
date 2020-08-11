@@ -44,7 +44,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /accounts/{accountNumber}:
+  /accounts/{accountNumber}/deposit:
     get:
       description: |
         Returns an account for the given id
@@ -62,6 +62,29 @@ paths:
                 $ref: '#/components/schemas/Account'
         '404':
           $ref: '#/components/responses/NotFound'
+    post:
+      description: |
+        Deposit money to customer account
+      parameters:
+        - $ref: '#/components/parameters/accountNumber'
+      operationId: depositMoney
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Deposit'
+      responses:
+        '201':
+          description: Money deposited successful
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |
+                URI of the created money transfer resource
 
   /accounts/{accountNumber}/balance:
     get:
@@ -231,6 +254,20 @@ components:
       required:
         - email
         - currecyCode
+
+    Deposit:
+      type: object
+      properties:
+        cashPointId:
+          type: string
+          example: 'CP-01'
+          description: |
+            The id of the cash point where the money was deposited
+        depositAmount:
+          $ref: '#/components/schemas/Money'
+      required:
+        - cashPointId
+        - depositAmount
 
     Account:
       type: object

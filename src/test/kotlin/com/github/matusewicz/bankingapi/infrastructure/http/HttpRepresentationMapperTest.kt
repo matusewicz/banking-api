@@ -1,7 +1,7 @@
 package com.github.matusewicz.bankingapi.infrastructure.http
 
-import com.github.matusewicz.bankingapi.domain.model.Account
-import com.github.matusewicz.bankingapi.infrastructure.http.account.AccountRepresentation
+import com.github.matusewicz.bankingapi.domain.model.CustomerAccount
+import com.github.matusewicz.bankingapi.infrastructure.http.account.CustomerAccountRepresentation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import javax.money.Monetary
@@ -12,7 +12,11 @@ class HttpRepresentationMapperTest {
 
     @Test
     fun `should map account to http resource representation`() {
-        val account = Account(accountNumber = "alice", email = "alice@example.org", baseCurrency = Monetary.getCurrency("EUR"))
+        val account = CustomerAccount(
+            accountNumber = "alice",
+            email = "alice@example.org",
+            baseCurrency = Monetary.getCurrency("EUR")
+        )
 
         val representation = unit.map(account)
 
@@ -23,24 +27,39 @@ class HttpRepresentationMapperTest {
 
     @Test
     fun `should include hateoas links in http resource`() {
-        val account = Account(accountNumber = "alice", email = "alice@example.org", baseCurrency = Monetary.getCurrency("EUR"))
+        val account = CustomerAccount(
+            accountNumber = "alice",
+            email = "alice@example.org",
+            baseCurrency = Monetary.getCurrency("EUR")
+        )
 
         val representation = unit.map(account)
 
-        assertThat(representation._links).hasSize(2)
+        assertThat(representation._links).hasSize(3)
         assertThat(representation._links["_self"]).isEqualTo(Link("https://example.org/accounts/${account.accountNumber}"))
+        assertThat(representation._links["accounts"]).isEqualTo(Link("https://example.org/accounts"))
+        assertThat(representation._links["transactions"]).isEqualTo(Link("https://example.org/accounts/${account.accountNumber}/transactions"))
     }
 
     @Test
     fun `should map list of accounts to http resource representation`() {
-        val oneAccount = Account(accountNumber = "alice", email = "alice@example.org", baseCurrency = Monetary.getCurrency("EUR"))
-        val anotherAccount = Account(accountNumber = "bob", email = "bob@example.org", baseCurrency = Monetary.getCurrency("EUR"))
+        val oneAccount = CustomerAccount(
+            accountNumber = "alice",
+            email = "alice@example.org",
+            baseCurrency = Monetary.getCurrency("EUR")
+        )
+        val anotherAccount =
+            CustomerAccount(
+                accountNumber = "bob",
+                email = "bob@example.org",
+                baseCurrency = Monetary.getCurrency("EUR")
+            )
 
         val listRepresentation = unit.map(listOf(oneAccount, anotherAccount))
 
-        assertThat(listRepresentation.accounts).hasSize(2)
-        assertThat(listRepresentation.accounts).containsExactlyInAnyOrder(
-            AccountRepresentation(
+        assertThat(listRepresentation.customerAccounts).hasSize(2)
+        assertThat(listRepresentation.customerAccounts).containsExactlyInAnyOrder(
+            CustomerAccountRepresentation(
                 accountNumber = oneAccount.accountNumber,
                 baseCurrency = oneAccount.baseCurrency,
                 email = oneAccount.email,
@@ -48,7 +67,7 @@ class HttpRepresentationMapperTest {
                     "_self" to Link("https://example.org/accounts/${oneAccount.accountNumber}")
                 )
             ),
-            AccountRepresentation(
+            CustomerAccountRepresentation(
                 accountNumber = anotherAccount.accountNumber,
                 baseCurrency = anotherAccount.baseCurrency,
                 email = anotherAccount.email,

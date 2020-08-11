@@ -8,11 +8,11 @@
     - Accept client information
     - Return account number
 
-3. [ ] Deposit money to bank account
+3. [x] Deposit money to bank account
     - add money to bank account
     - Optional: limit transactions by min and max amounts
 
-4. [ ] Transfer money to other bank account
+4. [x] Transfer money to other bank account
     - withdraw money from one account and deposit it to another
 
 5. [ ] Show current account balance
@@ -37,8 +37,8 @@
 - ~~Integrate problem json~~
 - ~~Integrate java validation~~
 - ~~Implement hateos linked resources~~
-- Implement add money to account
-- Implement move money between accounts
+- ~~Implement add money to account~~
+- ~~Implement move money between accounts~~
 - Implement account balance
 - Implement transaction history
 - Implement transaction rules

@@ -7,4 +7,5 @@ import java.util.*
 @Service
 class UUIDGenerator : IDGenerator {
     override fun newAccountNumber() = UUID.randomUUID().toString()
+    override fun newTransactionId() = UUID.randomUUID().toString()
 }
