@@ -44,7 +44,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /accounts/{accountNumber}/deposit:
+  /accounts/{accountNumber}:
     get:
       description: |
         Returns an account for the given id
@@ -62,6 +62,7 @@ paths:
                 $ref: '#/components/schemas/Account'
         '404':
           $ref: '#/components/responses/NotFound'
+  /accounts/{accountNumber}/deposit:
     post:
       description: |
         Deposit money to customer account

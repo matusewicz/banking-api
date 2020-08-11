@@ -21,6 +21,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -43,7 +44,7 @@ class TransactionControllerTest(
 
         whenever(transactionRepository.getAllTransactions(accountAlice.accountNumber)).thenReturn(transactions)
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/${accountAlice.accountNumber}/transactions"))
+        mockMvc.perform(get("/accounts/${accountAlice.accountNumber}/transactions"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk)
             .andExpect(
@@ -109,7 +110,7 @@ class TransactionControllerTest(
         whenever(transactionRepository.getTransaction(accountAlice.accountNumber, transactionId))
             .thenReturn(CreditTransaction(transactionId, accountAlice, 50.00.euro()))
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/${accountAlice.accountNumber}/transactions/$transactionId"))
+        mockMvc.perform(get("/accounts/${accountAlice.accountNumber}/transactions/$transactionId"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk)
             .andExpect(
@@ -139,7 +140,7 @@ class TransactionControllerTest(
     fun `should return 404 when resource not found`() {
         whenever(transactionRepository.getTransaction(any(), any())).thenThrow(NotFoundException::class.java)
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/unknown-account/transactions/unknown-tx"))
+        mockMvc.perform(get("/accounts/unknown-account/transactions/unknown-tx"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(status().is4xxClientError)
             .andExpect(content().json("""{"title":"Resource not found","status":404}"""))

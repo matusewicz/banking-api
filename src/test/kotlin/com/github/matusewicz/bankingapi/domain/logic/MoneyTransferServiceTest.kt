@@ -2,18 +2,18 @@ package com.github.matusewicz.bankingapi.domain.logic
 
 import com.github.matusewicz.bankingapi.TestUtils.euro
 import com.github.matusewicz.bankingapi.TestUtils.toCurrency
-import com.github.matusewicz.bankingapi.domain.model.CashPoint
-import com.github.matusewicz.bankingapi.domain.model.CreditTransaction
-import com.github.matusewicz.bankingapi.domain.model.CustomerAccount
-import com.github.matusewicz.bankingapi.domain.model.DebitTransaction
+import com.github.matusewicz.bankingapi.domain.logic.exceptions.InsufficientCreditException
+import com.github.matusewicz.bankingapi.domain.model.*
 import com.github.matusewicz.bankingapi.domain.persistence.CashPointRepository
 import com.github.matusewicz.bankingapi.domain.persistence.CustomerAccountRepository
 import com.github.matusewicz.bankingapi.domain.persistence.TransactionRepository
+import com.github.matusewicz.bankingapi.domain.persistence.TransferHistoryRepository
 import com.github.matusewicz.bankingapi.infrastructure.persistence.UUIDGenerator
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,9 +22,18 @@ class MoneyTransferServiceTest {
     val mockAccountRepository = mock<CustomerAccountRepository> {}
     val mockCashPointRepository = mock<CashPointRepository> {}
     val mockTransactionRepository = mock<TransactionRepository> { }
+    val mockTransferHistoryRepository = mock<TransferHistoryRepository> {}
+    val mockBalanceService = mock<BalanceCalculator> { }
 
     val unit =
-        MoneyTransferService(mockAccountRepository, mockCashPointRepository, mockTransactionRepository, UUIDGenerator())
+        MoneyTransferService(
+            mockAccountRepository,
+            mockCashPointRepository,
+            mockTransactionRepository,
+            mockTransferHistoryRepository,
+            UUIDGenerator(),
+            mockBalanceService
+        )
 
     val accountAlice =
         CustomerAccount(accountNumber = "alice", baseCurrency = "EUR".toCurrency(), email = "alice@example.org")
@@ -38,6 +47,8 @@ class MoneyTransferServiceTest {
         whenever(mockAccountRepository.getAccount(accountAlice.accountNumber)).thenReturn(accountAlice)
         whenever(mockAccountRepository.getAccount(accountBob.accountNumber)).thenReturn(accountBob)
         whenever(mockCashPointRepository.getCashPoint(cashPoint.accountNumber)).thenReturn(cashPoint)
+        whenever(mockBalanceService.calculateBalance(accountAlice.accountNumber)).thenReturn(Balance(account = accountAlice, value = 100.euro()))
+        whenever(mockBalanceService.calculateBalance(accountBob.accountNumber)).thenReturn(Balance(account = accountBob, value = 5.50.euro()))
     }
 
     @Test
@@ -92,5 +103,22 @@ class MoneyTransferServiceTest {
 
         assertThat(creditTx.account.accountNumber).isEqualTo(accountBob.accountNumber)
         assertThat(creditTx.amount).isEqualTo(transferAmount)
+    }
+
+    @Test
+    fun `should fail money transfer on insufficient credit`() {
+        val transferAmount = 30.50.euro()
+        val reference = "happy birthday"
+
+        val exception = Assertions.catchThrowable {
+            unit.transfer(
+                debtorAccountId = accountBob.accountNumber, // bob has only a balance of 5.50 EUR
+                creditorAccountId = accountAlice.accountNumber,
+                instructedAmount = transferAmount,
+                reference = reference
+            )
+        }
+
+        assertThat(exception).isInstanceOf(InsufficientCreditException::class.java)
     }
 }

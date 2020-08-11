@@ -46,7 +46,11 @@ class InMemoryCustomerAccountRepository(
 
     override fun lock(account: CustomerAccount) {
         log.debug("Locking account <{}>...", account.accountNumber)
-        accountLocks.getOrPut(account.accountNumber, { ReentrantLock(true) }).tryLock(5, TimeUnit.SECONDS)
+        val lockedSuccessful =
+            accountLocks.getOrPut(account.accountNumber, { ReentrantLock(true) }).tryLock(500, TimeUnit.MILLISECONDS)
+
+        if (!lockedSuccessful)
+            throw IllegalStateException("Account <${account.accountNumber}> couldn't be locked.")
     }
 
     override fun unlock(account: CustomerAccount) {

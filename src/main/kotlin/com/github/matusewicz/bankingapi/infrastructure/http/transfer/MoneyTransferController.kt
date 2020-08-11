@@ -1,14 +1,12 @@
 package com.github.matusewicz.bankingapi.infrastructure.http.transfer
 
 import com.github.matusewicz.bankingapi.domain.logic.MoneyTransferService
+import com.github.matusewicz.bankingapi.domain.persistence.TransferHistoryRepository
 import com.github.matusewicz.bankingapi.infrastructure.http.HttpRepresentationMapper
 import com.github.matusewicz.bankingapi.infrastructure.http.LinkBuilder
 import com.github.matusewicz.bankingapi.infrastructure.http.transfer.MoneyTransferController.Companion.PATH
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.net.URI
 import javax.validation.Valid
 
@@ -16,6 +14,7 @@ import javax.validation.Valid
 @RequestMapping(PATH)
 class MoneyTransferController(
     private val moneyTransferService: MoneyTransferService,
+    private val transferHistoryRepository: TransferHistoryRepository,
     private val linkBuilder: LinkBuilder,
     private val mapper: HttpRepresentationMapper
 ) {
@@ -37,4 +36,15 @@ class MoneyTransferController(
         return ResponseEntity.created(location).build()
     }
 
+    @GetMapping
+    fun getAllTransfers(): MoneyTransferListRepresentation {
+        val moneyTransfers = transferHistoryRepository.getAllTransfers()
+        return mapper.map(moneyTransfers)
+    }
+
+    @GetMapping("/{transferId}")
+    fun getTransfer(@PathVariable transferId: String): MoneyTransferRepresentation {
+        val moneyTransfer = transferHistoryRepository.getTransfer(transferId)
+        return mapper.map(moneyTransfer)
+    }
 }

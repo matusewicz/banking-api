@@ -1,12 +1,10 @@
 package com.github.matusewicz.bankingapi.domain.logic
 
+import com.github.matusewicz.bankingapi.domain.logic.exceptions.InsufficientCreditException
 import com.github.matusewicz.bankingapi.domain.model.CreditTransaction
 import com.github.matusewicz.bankingapi.domain.model.DebitTransaction
 import com.github.matusewicz.bankingapi.domain.model.MoneyTransfer
-import com.github.matusewicz.bankingapi.domain.persistence.CashPointRepository
-import com.github.matusewicz.bankingapi.domain.persistence.CustomerAccountRepository
-import com.github.matusewicz.bankingapi.domain.persistence.IDGenerator
-import com.github.matusewicz.bankingapi.domain.persistence.TransactionRepository
+import com.github.matusewicz.bankingapi.domain.persistence.*
 import org.springframework.stereotype.Service
 import javax.money.MonetaryAmount
 
@@ -15,7 +13,9 @@ class MoneyTransferService(
     private val customerAccountRepository: CustomerAccountRepository,
     private val cashPointRepository: CashPointRepository,
     private val transactionRepository: TransactionRepository,
-    private val idGenerator: IDGenerator
+    private val transferHistoryRepository: TransferHistoryRepository,
+    private val idGenerator: IDGenerator,
+    private val balanceCalculator: BalanceCalculator
 ) {
 
     fun deposit(cashPointId: String, customerAccountNumber: String, amount: MonetaryAmount): MoneyTransfer {
@@ -61,7 +61,14 @@ class MoneyTransferService(
             // lock account to prevent concurrent transactions exceeding account debit limit
             // TODO: think about locking creditor account as well -- in case there might be any limitations on maximum balance
             customerAccountRepository.lock(debtorAccount)
+
+            if (balanceCalculator.calculateBalance(debtorAccountId).value.isLessThan(instructedAmount)) {
+                // TODO: extract to an account debit policy to allow a configurable debit limit
+                throw InsufficientCreditException("Debtor account <$debtorAccountId> has insufficient credit to transfer <$instructedAmount> to account <$creditorAccountId>.")
+            }
             transactionRepository.createTransactions(debitTransaction, creditTransaction)
+            transferHistoryRepository.createTransfer(moneyTransfer)
+
         } finally {
             customerAccountRepository.unlock(debtorAccount)
         }

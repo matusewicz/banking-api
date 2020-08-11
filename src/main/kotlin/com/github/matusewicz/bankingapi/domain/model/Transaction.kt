@@ -1,6 +1,8 @@
 package com.github.matusewicz.bankingapi.domain.model
 
 import javax.money.MonetaryAmount
+import javax.validation.constraints.Negative
+import javax.validation.constraints.Positive
 
 interface Transaction {
     val id: String
@@ -11,11 +13,11 @@ interface Transaction {
 data class DebitTransaction(
     override val id: String,
     override val account: Account,
-    override val amount: MonetaryAmount
+    @get: Negative override val amount: MonetaryAmount
 ) : Transaction
 
 data class CreditTransaction(
     override val id: String,
     override val account: Account,
-    override val amount: MonetaryAmount
+    @get: Positive override val amount: MonetaryAmount
 ) : Transaction

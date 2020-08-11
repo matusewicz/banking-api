@@ -50,7 +50,7 @@ class AccountController(
     @PostMapping("/{accountNumber}/deposit")
     fun depositMoney(
         @PathVariable accountNumber: String,
-        @RequestBody request: DepositMoneyRequestBody
+        @Valid @RequestBody request: DepositMoneyRequestBody
     ): ResponseEntity<Void> {
         val deposit = transferService.deposit(
             cashPointId = request.cashPointId,

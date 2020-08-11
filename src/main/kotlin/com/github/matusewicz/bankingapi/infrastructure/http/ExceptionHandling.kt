@@ -1,5 +1,6 @@
 package com.github.matusewicz.bankingapi.infrastructure.http
 
+import com.github.matusewicz.bankingapi.domain.logic.exceptions.InsufficientCreditException
 import com.github.matusewicz.bankingapi.domain.logic.exceptions.NotFoundException
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
@@ -35,6 +36,15 @@ class ExceptionHandling : ProblemHandling {
         exception, Problem.builder()
             .withStatus(Status.NOT_FOUND)
             .withTitle("Resource not found")
+            .withDetail(exception.message)
+            .build(), request
+    )
+
+    @ExceptionHandler
+    fun handleInsufficientCreditException(exception: InsufficientCreditException, request: NativeWebRequest): ResponseEntity<Problem> = create(
+        exception, Problem.builder()
+            .withStatus(Status.BAD_REQUEST)
+            .withTitle("Money Transfer failed")
             .withDetail(exception.message)
             .build(), request
     )

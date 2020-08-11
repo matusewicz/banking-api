@@ -2,12 +2,15 @@ package com.github.matusewicz.bankingapi.infrastructure.http
 
 import com.github.matusewicz.bankingapi.domain.model.Balance
 import com.github.matusewicz.bankingapi.domain.model.CustomerAccount
+import com.github.matusewicz.bankingapi.domain.model.MoneyTransfer
 import com.github.matusewicz.bankingapi.domain.model.Transaction
 import com.github.matusewicz.bankingapi.infrastructure.http.account.CustomerAccountListRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.account.CustomerAccountRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.balance.BalanceRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.transaction.TransactionListRepresentation
 import com.github.matusewicz.bankingapi.infrastructure.http.transaction.TransactionRepresentation
+import com.github.matusewicz.bankingapi.infrastructure.http.transfer.MoneyTransferListRepresentation
+import com.github.matusewicz.bankingapi.infrastructure.http.transfer.MoneyTransferRepresentation
 import org.springframework.stereotype.Service
 
 @Service
@@ -77,6 +80,26 @@ class HttpRepresentationMapper(private val linkBuilder: LinkBuilder) {
                 "_self" to linkBuilder.balanceLink(balance.account.accountNumber),
                 "account" to linkBuilder.accountLink(balance.account.accountNumber)
             )
+        )
+    }
+
+    fun map(moneyTransfer: MoneyTransfer): MoneyTransferRepresentation {
+        return MoneyTransferRepresentation(
+            id = moneyTransfer.id,
+            debitTransaction = map(moneyTransfer.debitTransaction),
+            creditTransaction = map(moneyTransfer.creditTransaction),
+            _links = mapOf(
+                "_self" to linkBuilder.transferLink(moneyTransfer)
+            )
+        )
+    }
+
+    fun map(moneyTransfers: List<MoneyTransfer>): MoneyTransferListRepresentation {
+        return MoneyTransferListRepresentation(
+            transfers = moneyTransfers.map { moneyTransfer ->
+                map(moneyTransfer)
+            },
+            _links = mapOf("_self" to linkBuilder.transferListLink())
         )
     }
 }

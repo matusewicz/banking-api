@@ -4,7 +4,10 @@ import com.github.matusewicz.bankingapi.TestUtils.accountAlice
 import com.github.matusewicz.bankingapi.TestUtils.accountBob
 import com.github.matusewicz.bankingapi.TestUtils.euro
 import com.github.matusewicz.bankingapi.domain.logic.MoneyTransferService
+import com.github.matusewicz.bankingapi.domain.model.CreditTransaction
+import com.github.matusewicz.bankingapi.domain.model.DebitTransaction
 import com.github.matusewicz.bankingapi.domain.model.MoneyTransfer
+import com.github.matusewicz.bankingapi.domain.persistence.TransferHistoryRepository
 import com.github.matusewicz.bankingapi.infrastructure.JacksonConfig
 import com.github.matusewicz.bankingapi.infrastructure.http.ExceptionHandling
 import com.github.matusewicz.bankingapi.infrastructure.http.HttpRepresentationMapper
@@ -19,17 +22,19 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 
 @WebMvcTest(MoneyTransferController::class)
-@MockBean(MoneyTransferService::class)
+@MockBean(MoneyTransferService::class, TransferHistoryRepository::class)
 @TestPropertySource(properties = ["application.base-url=http://example.org"])
 @Import(LinkBuilder::class, HttpRepresentationMapper::class, JacksonConfig::class, ExceptionHandling::class)
 class MoneyTransferControllerTest(
     @Autowired val mockMvc: MockMvc,
-    @Autowired val mockMoneyTransferService: MoneyTransferService
+    @Autowired val mockMoneyTransferService: MoneyTransferService,
+    @Autowired val mockTransferHistoryRepository: TransferHistoryRepository
 ) {
 
     @BeforeEach
@@ -59,8 +64,8 @@ class MoneyTransferControllerTest(
                 )
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "http://example.org/transfers/0815"))
+            .andExpect(status().isCreated)
+            .andExpect(header().string("Location", "http://example.org/transfers/0815"))
 
 
         verify(mockMoneyTransferService).transfer(
@@ -90,10 +95,10 @@ class MoneyTransferControllerTest(
                 )
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(status().is4xxClientError)
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(
-                MockMvcResultMatchers.content().json(
+                content().json(
                     """
                     {
                       "type": "https://zalando.github.io/problem/constraint-violation",
@@ -109,7 +114,121 @@ class MoneyTransferControllerTest(
                     """.trimIndent()
                 )
             )
+    }
 
 
+    @Test
+    fun `should list all money transfers`() {
+        whenever(mockTransferHistoryRepository.getAllTransfers()).thenReturn(
+            listOf(
+                MoneyTransfer(
+                    id = "first",
+                    debitTransaction = DebitTransaction("one", accountAlice, 10.50.euro()),
+                    creditTransaction = CreditTransaction("two", accountBob, (-10.50).euro()),
+                    reference = "any ref"
+                ),
+                MoneyTransfer(
+                    id = "second",
+                    debitTransaction = DebitTransaction("three", accountBob, 50.23.euro()),
+                    creditTransaction = CreditTransaction("four", accountAlice, (-50.23).euro()),
+                    reference = "any ref"
+                )
+            )
+        )
+
+        mockMvc.perform(get("/transfers"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk)
+            .andExpect(
+                content().json(
+                    """
+                    {
+                      "transfers": [
+                        {
+                          "id": "first",
+                          "debitTransaction": {
+                            "id": "one",
+                            "transactionAmount": {
+                              "amount": 10.5,
+                              "currency": "EUR"
+                            },
+                            "_links": {
+                              "_self": {
+                                "href": "http://example.org/accounts/alice/transactions/one"
+                              },
+                              "transactions": {
+                                "href": "http://example.org/accounts/alice/transactions"
+                              }
+                            }
+                          },
+                          "creditTransaction": {
+                            "id": "two",
+                            "transactionAmount": {
+                              "amount": -10.5,
+                              "currency": "EUR"
+                            },
+                            "_links": {
+                              "_self": {
+                                "href": "http://example.org/accounts/bob/transactions/two"
+                              },
+                              "transactions": {
+                                "href": "http://example.org/accounts/bob/transactions"
+                              }
+                            }
+                          },
+                          "_links": {
+                            "_self": {
+                              "href": "http://example.org/transfers/first"
+                            }
+                          }
+                        },
+                        {
+                          "id": "second",
+                          "debitTransaction": {
+                            "id": "three",
+                            "transactionAmount": {
+                              "amount": 50.23,
+                              "currency": "EUR"
+                            },
+                            "_links": {
+                              "_self": {
+                                "href": "http://example.org/accounts/bob/transactions/three"
+                              },
+                              "transactions": {
+                                "href": "http://example.org/accounts/bob/transactions"
+                              }
+                            }
+                          },
+                          "creditTransaction": {
+                            "id": "four",
+                            "transactionAmount": {
+                              "amount": -50.23,
+                              "currency": "EUR"
+                            },
+                            "_links": {
+                              "_self": {
+                                "href": "http://example.org/accounts/alice/transactions/four"
+                              },
+                              "transactions": {
+                                "href": "http://example.org/accounts/alice/transactions"
+                              }
+                            }
+                          },
+                          "_links": {
+                            "_self": {
+                              "href": "http://example.org/transfers/second"
+                            }
+                          }
+                        }
+                      ],
+                      "_links": {
+                        "_self": {
+                          "href": "http://example.org/transfers"
+                        }
+                      }
+                    }
+                    """.trimIndent()
+                )
+            )
     }
 }

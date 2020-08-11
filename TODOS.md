@@ -17,11 +17,11 @@
 
 5. [x] Show current account balance
 
-6. [ ] Configurable transaction rules
+6. [X] Configurable transaction rules
     - by default prevent negative balances
     - allow overdraft for specific accounts
 
-7. [ ] List transaction history
+7. [X] List transaction history
 
 8. [ ] BONUS: Support multi currency
     - deposit money in different currencies to a single account
@@ -39,8 +39,8 @@
 - ~~Implement hateos linked resources~~
 - ~~Implement add money to account~~
 - ~~Implement move money between accounts~~
-- ~Implement account balance~
-- Implement transaction history
+- ~~Implement account balance~~
+- ~~Implement transaction history~~
 - Implement transaction rules
 - Implement currency exchange calculation on deposit of foreign currencies
 - Implement account locking/unlocking

@@ -2,6 +2,7 @@ package com.github.matusewicz.bankingapi.infrastructure.persistence
 
 import com.github.matusewicz.bankingapi.domain.model.CashPoint
 import com.github.matusewicz.bankingapi.domain.model.CustomerAccount
+import com.github.matusewicz.bankingapi.domain.model.MoneyTransfer
 import com.github.matusewicz.bankingapi.domain.model.Transaction
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,4 +25,7 @@ class PersistenceConfig {
 
     @Bean("transactionStorage")
     fun transactionStorage() = ConcurrentHashMap<AccountNumber, ConcurrentHashMap<TransactionId, Transaction>>()
+
+    @Bean("transferStorage")
+    fun transferStorage() = ConcurrentHashMap<String, MoneyTransfer>()
 }
